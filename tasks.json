@@ -1,0 +1,12 @@
+{
+  "group1": [
+    {
+      "task_id": "task1"
+    }
+  ],
+  "group2": [
+    {
+      "task_id": "task1"
+    }
+  ]
+}
