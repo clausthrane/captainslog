@@ -3,7 +3,7 @@ package entities
 import (
 	"testing"
 	"github.com/stretchr/testify/assert"
-	"code.uber.internal/infra/udeploy-lockingservice/Godeps/_workspace/src/golang.org/x/net/context"
+	"context"
 )
 
 

@@ -1,8 +1,8 @@
 package services
 
 import (
-	"github.com/clausthrane/captainslog/entities"
-	"github.com/clausthrane/captainslog/repository/tasks"
+	"github.com/clausthrane/captainslog/captainslog/repository/tasks"
+	"github.com/clausthrane/captainslog/captainslog/entities"
 )
 
 func NewTaskService(dao task_repository.TaskRepository, projectID entities.ProjectID) *TaskService {
@@ -19,7 +19,6 @@ func (s *TaskService) Save(taskGroup *entities.TaskGroup) error {
 		return err
 	} else {
 		return s.dao.Save(s.projectID, data)
-
 	}
 }
 

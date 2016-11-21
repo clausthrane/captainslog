@@ -1,8 +1,6 @@
 package task_repository
 
-import (
-	"github.com/clausthrane/captainslog/entities"
-)
+import "github.com/clausthrane/captainslog/captainslog/entities"
 
 type TaskRepository interface {
 	/**

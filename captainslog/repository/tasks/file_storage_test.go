@@ -3,7 +3,7 @@ package task_repository
 import (
 	"testing"
 	"github.com/stretchr/testify/assert"
-	"github.com/clausthrane/captainslog/entities"
+	"github.com/clausthrane/captainslog/captainslog/entities"
 )
 
 

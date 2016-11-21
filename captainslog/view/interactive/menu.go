@@ -1,8 +1,8 @@
-package cli
+package interactive
 
 import (
-	"github.com/jroimartin/gocui"
 	"fmt"
+	"github.com/jroimartin/gocui"
 )
 
 func (cli *Cli) setupMenu() error {
@@ -16,18 +16,17 @@ func (cli *Cli) setupMenu() error {
 		v.Title = "Captains Log"
 	}
 
-
 	if _, err := cli.gui.SetView("menu", 1, 1, maxX-3, 5); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
 	}
 
-	if v, err := cli.gui.SetView("menu_item", 2, 2, 7, 4); err != nil {
+	if menu_item, err := cli.gui.SetView("menu_item", 2, 2, 17, 4); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
-		fmt.Fprintln(v, "foo")
+		fmt.Fprintln(menu_item, "New task: F1")
 	}
 
 	return nil

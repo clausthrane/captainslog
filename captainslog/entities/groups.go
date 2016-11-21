@@ -2,48 +2,24 @@ package entities
 
 import (
 	"encoding/json"
-	"context"
-	"time"
 	"bytes"
 )
 
-// ID type for tasks
-type TaskID string
+
+type CatagoryID string
+
+func (c CatagoryID) IsBlank() bool {
+	return c == ""
+}
+
 
 // ID to identify groups of tasks
 type TaskGroupID string
 
-// Basic state for a task
-type Task struct {
-	Id          TaskID `json:"task_id"`
-	User        UserID `json:"user"`
-	Description string `json:"description"`
-	Created     time.Time `json:"created"`
-}
+type TaskGroupIDList []TaskGroupID
 
-func NewTask(ctx context.Context, description string) *Task {
-	return &Task{
-		"foobar",
-		ctx.Value("user").(UserID),
-		description,
-		time.Now(),
-	}
-}
-
-func (t *Task) marshal() []byte {
-	b, err := json.Marshal(t)
-	if err != nil {
-		panic(err)
-	}
-
-	return b
-}
-
-
-// Group of tasks
+// Group of tasks and metadata
 type TaskGroup struct {
-	//Name string `json:"name"`
-	//Tasks []Task `json:"tasks"`
 	Tasks map[TaskGroupID][]*Task `json:"tasks"`
 }
 

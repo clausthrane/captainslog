@@ -1,9 +1,12 @@
 package task_repository
 
 import (
-	"github.com/clausthrane/captainslog/entities"
 	"io/ioutil"
+	"github.com/clausthrane/captainslog/captainslog/entities"
+	"github.com/clausthrane/captainslog/captainslog/config"
 )
+
+var logger = config.Logger
 
 type filebacked_tasks struct {
 	ProjectRoot string
@@ -15,6 +18,7 @@ func NewFileBackedTaskRepository(projectRoot string) TaskRepository {
 
 func (f *filebacked_tasks) Save(projectID entities.ProjectID, data []byte) error {
 	filename := f.ProjectFile(projectID)
+	logger.Debug("Saving to", filename)
 	return ioutil.WriteFile(filename, data, 0644)
 }
 
