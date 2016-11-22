@@ -5,8 +5,16 @@ import (
 	"context"
 	"time"
 	"github.com/pborman/uuid"
+	"github.com/fatih/color"
 	"fmt"
+	"github.com/clausthrane/captainslog/captainslog/utils"
 )
+
+var white = color.New(color.FgHiWhite).SprintFunc()
+var green = color.New(color.FgHiGreen).SprintFunc()
+var red = color.New(color.FgHiRed).SprintFunc()
+var cyan = color.New(color.FgCyan).SprintFunc()
+
 
 // ID type for tasks
 type TaskID uuid.UUID
@@ -47,15 +55,22 @@ func (t *Task) marshal() []byte {
 }
 
 func (t *Task) String() string {
-	done := "√"
+	return t.StringWthIdx(-1)
+}
+
+func (t *Task) StringWthIdx(idx int) string {
+
+	done := green("√")
 	if ! t.Done {
-		done = "∞"
+		done = red("∞")
 	}
-	return fmt.Sprintf("%s (%s) Minutes: %d \n %s \n",
+
+	return fmt.Sprintf("[%d] %s (%s) time: %s \n %s",
+		idx,
 		done,
-		t.Category,
-		int(t.TimeUsed.Minutes()),
-		t.Description)
+		cyan(t.Category),
+		utils.PrettyPrint(t.TimeUsed),
+		white(t.Description))
 }
 
 type TaskList []*Task

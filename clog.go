@@ -12,6 +12,7 @@ import (
 	"github.com/clausthrane/captainslog/captainslog/utils"
 	"strconv"
 	"strings"
+	"github.com/fatih/color"
 )
 
 var log = config.Logger
@@ -53,6 +54,12 @@ func main() {
 			Aliases: []string{"t"},
 			Usage:   "remove note of a voyage",
 			Action:  remove_task,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "date, d",
+					Usage: "a specific day",
+				},
+			},
 		}, {
 			Name:    "todo",
 			Aliases: []string{"t"},
@@ -154,7 +161,7 @@ func complete_task(c *cli.Context) error {
 		panic(e)
 	}
 	if t != nil {
-		println(t.String())
+		println(t.StringWthIdx(0))
 	}
 	return nil
 }
@@ -196,7 +203,22 @@ func list_day(c *cli.Context) error {
 }
 
 func remove_task(c *cli.Context) error {
-	return nil
+	var groupId entities.TaskGroupID
+
+	key := c.Args().Get(0)
+	switch {
+	case key == "today":
+		groupId = entities.TodaysGroup()
+	case key == "todo":
+		groupId = todoGroupId
+	}
+
+	idx, err := strconv.Atoi(c.Args().Get(1))
+	if err != nil {
+		return err
+	}
+	app := captainslog.NewCaptainsLog(c, DEFAULT_DATADIR, DEFAULT_PROJECT)
+	return app.Commands.RemoveTask(groupId, idx)
 }
 
 func hasStringArg(c *cli.Context, key string) bool {
@@ -204,11 +226,12 @@ func hasStringArg(c *cli.Context, key string) bool {
 }
 
 func printList(tasks entities.TaskList, title string) {
-	println(fmt.Sprintf("Showing: %s", title))
+	white := color.New(color.FgHiWhite).SprintFunc()
+	println(fmt.Sprintf("Showing: %s", white(title)))
 	totalTime := tasks.SumTime()
 	println(fmt.Sprintf("Time used in total: %s", utils.PrettyPrint(totalTime)))
 	println(strings.Repeat("-", 10))
-	for _, task := range tasks {
-		println(task.String())
+	for idx, task := range tasks {
+		println(task.StringWthIdx(idx))
 	}
 }

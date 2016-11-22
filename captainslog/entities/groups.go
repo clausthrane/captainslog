@@ -39,6 +39,16 @@ func (g *TaskGroup) Add(groupID TaskGroupID, task *Task) {
 	g.Tasks[groupID] = group
 }
 
+func (g *TaskGroup) Remove(groupID TaskGroupID, idx int) {
+	tasks := g.Tasks[groupID]
+	switch  {
+	case idx > len(tasks):
+		g.Tasks[groupID] = append(tasks[0:idx-1],tasks[idx:]...)
+	case idx == 0:
+		g.Tasks[groupID] = tasks[idx:]
+	}
+}
+
 func (taskList *TaskGroup) Marshal() ([]byte, error) {
 	return json.Marshal(taskList)
 }
