@@ -17,6 +17,7 @@ import (
 var log = config.Logger
 var DEFAULT_DATADIR = "mydata"
 var DEFAULT_PROJECT = entities.ProjectID("project")
+var todoGroupId = entities.TaskGroupID("todo")
 
 func main() {
 
@@ -64,17 +65,21 @@ func main() {
 			Subcommands: []cli.Command{
 				{
 					Name: "today",
-					Usage: "show content for a given day",
+					Usage: "show content for today",
 					Action: list_day,
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "cat, c",
 							Usage: "a catagory",
 						},
+						cli.StringFlag{
+							Name:  "date, d",
+							Usage: "a specific day",
+						},
 					},
 				}, {
 					Name: "week",
-					Usage: "show content for a given week",
+					Usage: "show content for this week",
 					Action: list_week,
 					Flags: []cli.Flag{
 						cli.StringFlag{
@@ -83,9 +88,9 @@ func main() {
 						},
 					},
 				}, {
-					Name: "all",
-					Usage: "show content for a given week",
-					Action: list_all,
+					Name: "todo",
+					Usage: "show all uncompleted tasks",
+					Action: list_todo,
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "cat, c",
@@ -111,12 +116,14 @@ func main_view(c *cli.Context) error {
 
 func todo_task(c *cli.Context) error {
 	category := entities.CatagoryID(c.Args().Get(0))
-	description := strings.Join(c.Args()[1:], " ")
+	var description string
+	if c.NArg() > 1 {
+		description = strings.Join(c.Args()[1:], " ")
+	}
 
 	app := captainslog.NewCaptainsLog(c, DEFAULT_DATADIR, DEFAULT_PROJECT)
 
-	gid := entities.TodaysGroup()
-	t, e := app.Commands.AddOpenTask(gid, description, category)
+	t, e := app.Commands.AddOpenTask(todoGroupId, description, category)
 
 	if e != nil {
 		panic(e)
@@ -124,10 +131,6 @@ func todo_task(c *cli.Context) error {
 	if t != nil {
 		println(t.String())
 	}
-	return nil
-}
-
-func remove_task(c *cli.Context) error {
 	return nil
 }
 
@@ -156,14 +159,21 @@ func complete_task(c *cli.Context) error {
 	return nil
 }
 
-func list_all(c *cli.Context) error {
+func list_week(c *cli.Context) error {
 	//category := entities.CatagoryID(c.String("cat"))
 	return nil
 }
 
-func list_week(c *cli.Context) error {
-	//category := entities.CatagoryID(c.String("cat"))
-	return nil
+func list_todo(c *cli.Context) error {
+	category := entities.CatagoryID(c.String("cat"))
+	app := captainslog.NewCaptainsLog(c, DEFAULT_DATADIR, DEFAULT_PROJECT)
+
+	title := "TODO"
+	var err error
+	if tasks, err := app.Queries.ListTasks(todoGroupId, category); err == nil {
+		printList(tasks, title)
+	}
+	return err
 }
 
 func list_day(c *cli.Context) error {
@@ -177,16 +187,15 @@ func list_day(c *cli.Context) error {
 	groupId := entities.GroupByDate(when)
 	app := captainslog.NewCaptainsLog(c, DEFAULT_DATADIR, DEFAULT_PROJECT)
 
-	if tasks, err := app.Queries.ListTasks(groupId, category); err != nil {
-		panic(err)
-	} else {
-		totalTime := tasks.SumTime()
-		println(fmt.Sprintf("Time used in total: %s", utils.PrettyPrint(totalTime)))
-		println(strings.Repeat("-", 10))
-		for _, task := range tasks {
-			println(task.String())
-		}
+	title := entities.DateString(when)
+	var err error
+	if tasks, err := app.Queries.ListTasks(groupId, category); err == nil {
+		printList(tasks, title)
 	}
+	return err
+}
+
+func remove_task(c *cli.Context) error {
 	return nil
 }
 
@@ -194,3 +203,12 @@ func hasStringArg(c *cli.Context, key string) bool {
 	return utils.EmptyString(c.String(key))
 }
 
+func printList(tasks entities.TaskList, title string) {
+	println(fmt.Sprintf("Showing: %s", title))
+	totalTime := tasks.SumTime()
+	println(fmt.Sprintf("Time used in total: %s", utils.PrettyPrint(totalTime)))
+	println(strings.Repeat("-", 10))
+	for _, task := range tasks {
+		println(task.String())
+	}
+}

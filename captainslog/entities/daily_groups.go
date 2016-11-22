@@ -5,15 +5,18 @@ import (
 	"fmt"
 )
 
-
 func TodaysGroup() TaskGroupID {
 	utc := time.Now().UTC()
-	today := utc.Format("2006-01-02")
+	today := DateString(utc)
 	return TaskGroupID(fmt.Sprintf("group:%s", today))
 }
 
 func GroupByDate(utc time.Time) TaskGroupID {
-	today := utc.Format("2006-01-02")
+	today := DateString(utc)
 	return TaskGroupID(fmt.Sprintf("group:%s", today))
+}
+
+func DateString(utc time.Time) string {
+	return utc.Format("2006-01-02")
 }
 
