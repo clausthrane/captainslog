@@ -59,17 +59,30 @@ func (t *Task) String() string {
 }
 
 func (t *Task) StringWthIdx(idx int) string {
-
-	done := green("√")
-	if ! t.Done {
-		done = red("∞")
+	if t.Done {
+		return t.FormatDone(idx)
+	} else {
+		return t.FormatOpen(idx)
 	}
 
+}
+
+func (t *Task) FormatDone(idx int) string {
+	status := green("√")
 	return fmt.Sprintf("[%d] %s (%s) time: %s \n %s",
 		idx,
-		done,
+		status,
 		cyan(t.Category),
 		utils.PrettyPrint(t.TimeUsed),
+		white(t.Description))
+}
+
+func (t *Task) FormatOpen(idx int) string {
+	status := red("⌘")
+	return fmt.Sprintf("[%d] %s (%s) \n %s",
+		idx,
+		status,
+		cyan(t.Category),
 		white(t.Description))
 }
 

@@ -5,7 +5,6 @@ import (
 	"bytes"
 )
 
-
 type CatagoryID string
 
 func (c CatagoryID) IsBlank() bool {
@@ -39,13 +38,20 @@ func (g *TaskGroup) Add(groupID TaskGroupID, task *Task) {
 	g.Tasks[groupID] = group
 }
 
+func (g *TaskGroup) Get(groupID TaskGroupID, idx int) *Task {
+	tasks := g.Tasks[groupID]
+	return tasks[idx]
+}
+
 func (g *TaskGroup) Remove(groupID TaskGroupID, idx int) {
 	tasks := g.Tasks[groupID]
 	switch  {
-	case idx > len(tasks):
-		g.Tasks[groupID] = append(tasks[0:idx-1],tasks[idx:]...)
+	case idx == 0 && len(tasks) <= 1:
+		g.Tasks[groupID] = nil
 	case idx == 0:
 		g.Tasks[groupID] = tasks[idx:]
+	case idx < len(tasks):
+		g.Tasks[groupID] = append(tasks[0:idx - 1], tasks[idx:]...)
 	}
 }
 

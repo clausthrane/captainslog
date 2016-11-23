@@ -51,3 +51,11 @@ func (q *Queries) ListGroups() (entities.TaskGroupIDList, error) {
 		return keys, nil
 	}
 }
+
+func (c *Queries) GetTask(groupID entities.TaskGroupID, idx int) (*entities.Task, error) {
+	if groups, err := c.service.Load(); err != nil {
+		return nil, err
+	} else {
+		return groups.Get(groupID, idx), nil
+	}
+}

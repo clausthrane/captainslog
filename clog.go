@@ -19,6 +19,7 @@ var log = config.Logger
 var DEFAULT_DATADIR = "mydata"
 var DEFAULT_PROJECT = entities.ProjectID("project")
 var todoGroupId = entities.TaskGroupID("todo")
+var red = color.New(color.FgHiRed).SprintFunc()
 
 func main() {
 
@@ -65,6 +66,12 @@ func main() {
 			Aliases: []string{"t"},
 			Usage:   "make note of a future voyage",
 			Action:  todo_task,
+			Subcommands: []cli.Command{
+				{
+					Name: "done",
+					Action: complete_todo,
+				},
+			},
 		}, {
 			Name:    "list",
 			Aliases: []string{"l"},
@@ -116,6 +123,11 @@ func main() {
 	commandline.Run(os.Args)
 }
 
+func foo(c *cli.Context) error {
+	print("foo")
+	return nil
+}
+
 func main_view(c *cli.Context) error {
 	interactive.NewInteractiveCli(captainslog.NewCaptainsLog(c, DEFAULT_DATADIR, DEFAULT_PROJECT))
 	return nil
@@ -130,40 +142,49 @@ func todo_task(c *cli.Context) error {
 
 	app := captainslog.NewCaptainsLog(c, DEFAULT_DATADIR, DEFAULT_PROJECT)
 
-	t, e := app.Commands.AddOpenTask(todoGroupId, description, category)
-
-	if e != nil {
-		panic(e)
-	}
-	if t != nil {
+	var err error
+	if t, err := app.Commands.AddOpenTask(todoGroupId, description, category); err == nil {
 		println(t.String())
 	}
-	return nil
+	return err
 }
 
 func complete_task(c *cli.Context) error {
-
-	numberOfMinutes, err := strconv.Atoi(c.Args().Get(0))
-	if err != nil {
-		numberOfMinutes = 15
-	}
-
-	timeUsed := time.Duration(numberOfMinutes) * time.Minute
-	category := entities.CatagoryID(c.Args().Get(1))
-	description := strings.Join(c.Args()[2:], " ")
-
 	app := captainslog.NewCaptainsLog(c, DEFAULT_DATADIR, DEFAULT_PROJECT)
 
+	timeUsed := utils.StringAsDuration(c.Args().Get(0), time.Minute)
+	category := entities.CatagoryID(c.Args().Get(1))
+	description := strings.Join(c.Args()[2:], " ")
 	gid := entities.TodaysGroup()
-	t, e := app.Commands.AddDoneTask(gid, description, category, timeUsed)
 
-	if e != nil {
-		panic(e)
-	}
-	if t != nil {
+	var err error
+	if t, err := app.Commands.AddDoneTask(gid, description, category, timeUsed); err == nil {
 		println(t.StringWthIdx(0))
 	}
-	return nil
+	return err
+}
+
+func complete_todo(c *cli.Context) error {
+	app := captainslog.NewCaptainsLog(c, DEFAULT_DATADIR, DEFAULT_PROJECT)
+
+	todoIdx, err := strconv.Atoi(c.Args().Get(0))
+	if err != nil {
+		println(red("Which todo do you want to complete?"))
+		return err
+	}
+	timeUsed := utils.StringAsDuration(c.Args().Get(1), time.Minute)
+
+	task, err := app.Queries.GetTask(todoGroupId, todoIdx)
+	if err == nil {
+		err = app.Commands.RemoveTask(todoGroupId, todoIdx)
+		if err == nil {
+			groupId := entities.TodaysGroup()
+			task, err = app.Commands.AddDoneTask(groupId, task.Description, task.Category, timeUsed)
+			print(task.FormatDone(todoIdx))
+		}
+	}
+	return err
+
 }
 
 func list_week(c *cli.Context) error {
@@ -227,11 +248,17 @@ func hasStringArg(c *cli.Context, key string) bool {
 
 func printList(tasks entities.TaskList, title string) {
 	white := color.New(color.FgHiWhite).SprintFunc()
-	println(fmt.Sprintf("Showing: %s", white(title)))
 	totalTime := tasks.SumTime()
-	println(fmt.Sprintf("Time used in total: %s", utils.PrettyPrint(totalTime)))
-	println(strings.Repeat("-", 10))
+
+	line := strings.Repeat(white("-"), 80)
+	println(line)
+	println(fmt.Sprintf("Showing: %s", white(title)))
+	if ! (totalTime == 0) {
+		println(fmt.Sprintf("Time used in total: %s", utils.PrettyPrint(totalTime)))
+	}
+	println(line)
 	for idx, task := range tasks {
 		println(task.StringWthIdx(idx))
 	}
+	println(line)
 }

@@ -48,3 +48,4 @@ func (c *Commands) RemoveTask(groupID entities.TaskGroupID, idx int) error {
 		return c.service.Save(groups)
 	}
 }
+
