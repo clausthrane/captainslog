@@ -208,7 +208,7 @@ func list_day(c *cli.Context) error {
 	category := entities.CatagoryID(c.String("cat"))
 
 	when := time.Now().UTC()
-	if hasStringArg(c, "date") {
+	if utils.HasStringArg(c, "date") {
 		when = utils.ParseDate(c.String("date"))
 	}
 
@@ -242,9 +242,7 @@ func remove_task(c *cli.Context) error {
 	return app.Commands.RemoveTask(groupId, idx)
 }
 
-func hasStringArg(c *cli.Context, key string) bool {
-	return utils.EmptyString(c.String(key))
-}
+
 
 func printList(tasks entities.TaskList, title string) {
 	white := color.New(color.FgHiWhite).SprintFunc()

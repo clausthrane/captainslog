@@ -12,8 +12,8 @@ func TodaysGroup() TaskGroupID {
 }
 
 func GroupByDate(utc time.Time) TaskGroupID {
-	today := DateString(utc)
-	return TaskGroupID(fmt.Sprintf("group:%s", today))
+	day := DateString(utc)
+	return TaskGroupID(fmt.Sprintf("group:%s", day))
 }
 
 func DateString(utc time.Time) string {

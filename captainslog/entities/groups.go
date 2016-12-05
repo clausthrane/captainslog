@@ -11,6 +11,10 @@ func (c CatagoryID) IsBlank() bool {
 	return c == ""
 }
 
+func BlankCategory() CatagoryID {
+	return CatagoryID("")
+}
+
 
 // ID to identify groups of tasks
 type TaskGroupID string
@@ -68,4 +72,14 @@ func NewTaskGroupFromData(data []byte) (*TaskGroup, error) {
 		return nil, err
 	}
 	return &group, nil
+}
+
+func (l TaskGroupIDList) Len() int {
+    return len(l)
+}
+func (l TaskGroupIDList) Swap(i, j int) {
+    l[i], l[j] = l[j], l[i]
+}
+func (l TaskGroupIDList) Less(i, j int) bool {
+    return string(l[i]) < string(l[j])
 }
