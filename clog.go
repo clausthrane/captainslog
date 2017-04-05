@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"github.com/fatih/color"
+	"errors"
 )
 
 var log = config.Logger
@@ -24,7 +25,7 @@ var red = color.New(color.FgHiRed).SprintFunc()
 func main() {
 
 	commandline := cli.NewApp()
-	commandline.Name = fmt.Sprintf("Captains Log: %s", config.GetString("captain"))
+	commandline.Name = fmt.Sprintf("Captains %s's Log", config.GetString("captain"))
 	commandline.Usage = "record your stuff"
 	commandline.HelpName = "Space: the final frontier. These are the voyages of the starship Enterprise"
 	commandline.EnableBashCompletion = true
@@ -54,17 +55,27 @@ func main() {
 			Name:    "remove",
 			Aliases: []string{"t"},
 			Usage:   "remove note of a voyage",
-			Action:  remove_task,
+			//Action:  remove_task,
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "date, d",
 					Usage: "a specific day",
 				},
 			},
+			Subcommands: []cli.Command{
+				{
+					Name: "today",
+					Action: remove_task_from_current_day,
+				},
+				{
+					Name: "todo",
+					Action: remove_todo_task,
+				},
+			},
 		}, {
 			Name:    "todo",
 			Aliases: []string{"t"},
-			Usage:   "make note of a future voyage",
+			Usage:   "this will make note of a future voyage",
 			Action:  todo_task,
 			Subcommands: []cli.Command{
 				{
@@ -188,8 +199,34 @@ func complete_todo(c *cli.Context) error {
 }
 
 func list_week(c *cli.Context) error {
-	//category := entities.CatagoryID(c.String("cat"))
-	return nil
+
+	var err error
+	app := captainslog.NewCaptainsLog(c, DEFAULT_DATADIR, DEFAULT_PROJECT)
+
+	allWeek := make(map[entities.CatagoryID][]*entities.Task)
+
+	for _, d := range utils.DatesInThisWeek() {
+		groupId := entities.GroupByDate(d)
+		if tasks, err := app.Queries.ListTasks(groupId, entities.BlankCategory()); err == nil {
+			for _, task := range tasks {
+				items := allWeek[task.Category]
+				if items == nil {
+					items = make([]*entities.Task, 0)
+				}
+				items = append(items, task)
+				allWeek[task.Category] = items
+			}
+		}
+	}
+
+	for key, value := range allWeek {
+		println(key.String())
+		for _, task := range value {
+			println(fmt.Sprintf("- %s", task.Description))
+		}
+	}
+
+	return err
 }
 
 func list_todo(c *cli.Context) error {
@@ -223,25 +260,28 @@ func list_day(c *cli.Context) error {
 	return err
 }
 
-func remove_task(c *cli.Context) error {
-	var groupId entities.TaskGroupID
+func remove_task_from_current_day(c *cli.Context) error {
+	groupId := entities.TodaysGroup()
 
-	key := c.Args().Get(0)
-	switch {
-	case key == "today":
-		groupId = entities.TodaysGroup()
-	case key == "todo":
-		groupId = todoGroupId
-	}
-
-	idx, err := strconv.Atoi(c.Args().Get(1))
+	idx, err := strconv.Atoi(c.Args().Get(0))
 	if err != nil {
-		return err
+		return errors.New("Make sure to provide an idx of the task to remove")
 	}
 	app := captainslog.NewCaptainsLog(c, DEFAULT_DATADIR, DEFAULT_PROJECT)
 	return app.Commands.RemoveTask(groupId, idx)
 }
 
+
+func remove_todo_task(c *cli.Context) error {
+	groupId := todoGroupId
+
+	idx, err := strconv.Atoi(c.Args().Get(0))
+	if err != nil {
+		return errors.New("Make sure to provide an idx of the task to remove")
+	}
+	app := captainslog.NewCaptainsLog(c, DEFAULT_DATADIR, DEFAULT_PROJECT)
+	return app.Commands.RemoveTask(groupId, idx)
+}
 
 
 func printList(tasks entities.TaskList, title string) {

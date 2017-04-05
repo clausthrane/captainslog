@@ -3,12 +3,18 @@ package entities
 import (
 	"encoding/json"
 	"bytes"
+	"errors"
+	"fmt"
 )
 
 type CatagoryID string
 
 func (c CatagoryID) IsBlank() bool {
 	return c == ""
+}
+
+func (c CatagoryID) String() string {
+	return fmt.Sprintf("[%s]", string(c))
 }
 
 func BlankCategory() CatagoryID {
@@ -47,16 +53,19 @@ func (g *TaskGroup) Get(groupID TaskGroupID, idx int) *Task {
 	return tasks[idx]
 }
 
-func (g *TaskGroup) Remove(groupID TaskGroupID, idx int) {
+func (g *TaskGroup) Remove(groupID TaskGroupID, idx int) error {
 	tasks := g.Tasks[groupID]
 	switch  {
 	case idx == 0 && len(tasks) <= 1:
 		g.Tasks[groupID] = nil
 	case idx == 0:
-		g.Tasks[groupID] = tasks[idx:]
+		g.Tasks[groupID] = tasks[1:]
 	case idx < len(tasks):
 		g.Tasks[groupID] = append(tasks[0:idx - 1], tasks[idx:]...)
+	case true:
+		return errors.New("Unknown task")
 	}
+	return nil
 }
 
 func (taskList *TaskGroup) Marshal() ([]byte, error) {

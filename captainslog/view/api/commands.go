@@ -41,11 +41,12 @@ func (c *Commands) addTask(groupID entities.TaskGroupID, description string, cat
 }
 
 func (c *Commands) RemoveTask(groupID entities.TaskGroupID, idx int) error {
-	if groups, err := c.service.Load(); err != nil {
-		return err
-	} else {
-		groups.Remove(groupID, idx)
-		return c.service.Save(groups)
+	var err error
+	if groups, err := c.service.Load(); err == nil {
+		if err = groups.Remove(groupID, idx); err == nil {
+			err = c.service.Save(groups)
+		}
 	}
+	return err
 }
 
